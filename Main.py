@@ -2,16 +2,21 @@ import tweepy
 import random
 import time
 from pynput import keyboard
-from os import system, sys, getcwd
-import requests
+import os
+import urllib.request
 
 #Reader be warned this code is spaghetti af
 
+#Read the env variables to set the twitter api login info
+consumer_key = os.getenv("CONSUMER_KEY")
+consumer_secret = os.getenv("CONSUMER_SECRET")
+access_token = os.getenv("ACCESS_TOKEN")
+access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
+
+
 #Twitter auth
-#Consumer API and API secret key
-auth = tweepy.OAuthHandler("QLntDiZAtB7CjuFEs4tc1DBbS","vradE4DrnojcheXptysnPIarF5TVP5S9t8jKqrjtv3DZ8t7qG6")
-#Access token and access token secret
-auth.set_access_token("1215687993220042752-4Fsnxjz3ACVE7DYq2VEkNh8OBOPSU2","iWvcU54RUpFhR82ZC8Htni44SZoe8mhKxoFXxmVQ9b2F6")
+auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
+auth.set_access_token(access_token,access_token_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 #Attemp login to twitter api
@@ -21,17 +26,23 @@ try:
 except:
     print("Error authenticating")
 
+#Sets wormed.txt raw url from github and downloads it
+url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
+urllib.request.urlretrieve(url,"wormed.txt")
+
 worm_facts = []
 #Try to import the worm facts file
 try:
     worm_facts_file = open("wormed.txt","r")
 except FileNotFoundError:
     print("Could not find file")
+    exit()
 
 #Reads all lines in the text document and copies them to empty list and closes file
 for worm_fact in worm_facts_file.readlines():
     worm_facts.append(worm_fact)
 worm_facts_file.close()
+os.remove("wormed.txt")
 
 #Declaration of various variables that are needed later
 #For random generation, sets max index
@@ -55,15 +66,18 @@ def on_press(key):
     #Reloads worm facts from file when pressing the Ins key
     elif key == keyboard.Key.insert:
         print("Reloading worm facts...")
+        urllib.request.urlretrieve(url,"wormed.txt")
         try:
             worm_facts_file = open("wormed.txt","r")
         except FileNotFoundError:
             print("Could not find file")
+            exit()
         worm_facts.clear()
         for worm_fact in worm_facts_file.readlines():
             worm_facts.append(worm_fact)
         i = len(worm_facts) - 1
         worm_facts_file.close()
+        os.remove("wormed.txt")
         print("Printing worm facts:")
         for worm_fact in worm_facts:
             print(worm_fact)
