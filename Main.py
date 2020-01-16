@@ -14,7 +14,7 @@ access_token = os.getenv("ACCESS_TOKEN")
 access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 
 
-#Twitter auth
+#Twitter auth info
 auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
 auth.set_access_token(access_token,access_token_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
@@ -48,7 +48,7 @@ os.remove("wormed.txt")
 #For random generation, sets max index
 i = len(worm_facts) - 1
 #Defines time the bot should tweet
-tweet_time_h = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,0]
+tweet_time_h = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0]
 tweet_time_m = 0
 #For endless loop
 stop = False
@@ -94,7 +94,7 @@ with keyboard.Listener(on_press=on_press) as listener:
         #If time is equal to tweet time it tweets
         if curr_time.tm_hour in tweet_time_h and curr_time.tm_min == tweet_time_m:
             #Keeps trying to tweet until it doesn't encounter the duplicate status error
-            #This might cause the bot to exceed the max amounts of calls to the api, in that case fuck this bot
+            #This might cause the bot to exceed the max amounts of calls to the api, however this is unlikely
             try:
                 #Generate random tweet
                 api.update_status(worm_facts[random.randint(0,i)])
