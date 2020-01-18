@@ -4,8 +4,12 @@ import time
 from pynput import keyboard
 import os
 import urllib.request
+import logging
 
 #Reader be warned this code is spaghetti af
+
+#Logging settings
+logging.basicConfig(filename='bot_log.log',filemode='a',format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
 
 #Read the env variables to set the twitter api login info
 consumer_key = os.getenv("CONSUMER_KEY")
@@ -22,13 +26,17 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 #Attemp login to twitter api
 try:
     api.verify_credentials()
-    print("Authentication successful\n")
+    logging.info("Authenticated to twitter API successfully")
 except:
-    print("Error authenticating")
+    logging.error("Failed to authenticate to twitter API")
 
 #Sets wormed.txt raw url from github and downloads it
-url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
-urllib.request.urlretrieve(url,"wormed.txt")
+try:
+    url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
+    urllib.request.urlretrieve(url,"wormed.txt")
+except:
+    logging.error("Failed to request wormed file from github")
+    exit()
 
 worm_facts = []
 #Try to import the worm facts file
@@ -36,7 +44,7 @@ try:
     #File is opened with encoding utf-8 because that's what twitter uses
     worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
 except FileNotFoundError:
-    print("Could not find file")
+    logging.error("Failed opening wormed file from disk")
     exit()
 
 #Reads all lines in the text document and copies them to empty list and closes file
@@ -67,11 +75,15 @@ def on_press(key):
     #Reloads worm facts from file when pressing the Ins key
     elif key == keyboard.Key.insert:
         print("Reloading worm facts...")
-        urllib.request.urlretrieve(url,"wormed.txt")
+        try:
+            urllib.request.urlretrieve(url,"wormed.txt")
+        except:
+            logging.error("Failed to request wormed file from github")
+            exit()
         try:
             worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
         except FileNotFoundError:
-            print("Could not find file")
+            logging.error("Failed opening wormed file from disk")
             exit()
         worm_facts.clear()
         for worm_fact in worm_facts_file.readlines():
@@ -102,7 +114,7 @@ with keyboard.Listener(on_press=on_press) as listener:
                 print("Tweeted")
                 time.sleep(60)
             except tweepy.TweepError:
-                print("Status Duplicate, trying again")
+                logging.error("Status duplicate, trying different tweet")
         else:
             print("Time is not correct, didn't tweet")
             time.sleep(60)
