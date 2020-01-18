@@ -33,7 +33,8 @@ urllib.request.urlretrieve(url,"wormed.txt")
 worm_facts = []
 #Try to import the worm facts file
 try:
-    worm_facts_file = open("wormed.txt","r")
+    #File is opened with encoding utf-8 because that's what twitter uses
+    worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
 except FileNotFoundError:
     print("Could not find file")
     exit()
@@ -68,7 +69,7 @@ def on_press(key):
         print("Reloading worm facts...")
         urllib.request.urlretrieve(url,"wormed.txt")
         try:
-            worm_facts_file = open("wormed.txt","r")
+            worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
         except FileNotFoundError:
             print("Could not find file")
             exit()
