@@ -30,7 +30,7 @@ try:
 except:
     logging.error("Failed to authenticate to twitter API")
 
-#Sets wormed.txt raw url from github and downloads it
+#Sets wormed.txt raw url from github and tries to download it
 try:
     url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
     urllib.request.urlretrieve(url,"wormed.txt")
@@ -111,6 +111,7 @@ with keyboard.Listener(on_press=on_press) as listener:
             try:
                 #Generate random tweet
                 api.update_status(worm_facts[random.randint(0,i)])
+                logging.info("Tweeted")
                 print("Tweeted")
                 time.sleep(60)
             except tweepy.TweepError:
@@ -119,6 +120,9 @@ with keyboard.Listener(on_press=on_press) as listener:
             print("Time is not correct, didn't tweet")
             time.sleep(60)
             print("\n")
-
+        if os.name == 'nt':
+            os.system('cls')
+        else:
+            os.system('clear')
     #Continues listening
     listener.join()
