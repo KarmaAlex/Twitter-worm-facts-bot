@@ -17,7 +17,6 @@ consumer_secret = os.getenv("CONSUMER_SECRET")
 access_token = os.getenv("ACCESS_TOKEN")
 access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 
-
 #Twitter auth info
 auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
 auth.set_access_token(access_token,access_token_secret)
@@ -34,6 +33,7 @@ except:
 try:
     url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
     urllib.request.urlretrieve(url,"wormed.txt")
+    logging.info("Pulled wormed fle from github")
 except:
     logging.error("Failed to request wormed file from github")
     exit()
@@ -56,9 +56,9 @@ os.remove("wormed.txt")
 #Declaration of various variables that are needed later
 #For random generation, sets max index
 i = len(worm_facts) - 1
-#Defines time the bot should tweet
-tweet_time_h = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0]
-tweet_time_m = 0
+#Defines times the bot should tweet
+#If you want to change the times remember that for minutes below 10 the 0 is not included so 19:05 is actually 19:5
+tweet_times = ["8:0","9:0","10:0","11:0","12:0","13:0","14:0","15:0","16:0","17:0","18:0","19:0","20:0","21:0","22:0","23:0","0:0"]
 #For endless loop
 stop = False
 
@@ -77,6 +77,7 @@ def on_press(key):
         print("Reloading worm facts...")
         try:
             urllib.request.urlretrieve(url,"wormed.txt")
+            logging.info("Pulled wormed file from github")
         except:
             logging.error("Failed to request wormed file from github")
             exit()
@@ -101,11 +102,13 @@ with keyboard.Listener(on_press=on_press) as listener:
     while stop == False:
         #Gets current time
         seconds = time.time()
-        curr_time = time.localtime(seconds)
+        time_secs = time.localtime(seconds)
+        #Copies time to a string value with the format hh:m/hh:mm
+        curr_time = str(time_secs.tm_hour) + ":" + str(time_secs.tm_min)
         print("Controls:\nEnd Quit bot\nIns reload worm facts and print\n")
-        print(str(curr_time.tm_hour) + ":" + str(curr_time.tm_min) + "\n")
+        print(curr_time + "\n")
         #If time is equal to tweet time it tweets
-        if curr_time.tm_hour in tweet_time_h and curr_time.tm_min == tweet_time_m:
+        if curr_time in tweet_times:
             #Keeps trying to tweet until it doesn't encounter the duplicate status error
             #This might cause the bot to exceed the max amounts of calls to the api, however this is unlikely
             try:
@@ -120,6 +123,7 @@ with keyboard.Listener(on_press=on_press) as listener:
             print("Time is not correct, didn't tweet")
             time.sleep(60)
             print("\n")
+        #Clears screen for clarity's sake, should also work on non-windows machines
         if os.name == 'nt':
             os.system('cls')
         else:
