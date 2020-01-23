@@ -6,10 +6,9 @@ import os
 import urllib.request
 import logging
 
-#Reader be warned this code is spaghetti af
-
 #Logging settings
 logging.basicConfig(filename='bot_log.log',filemode='a',format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
+#The bot creates a bot_log.log file where it logs tweets, reloads of files and eventual errors, the log includes a time stamp
 
 #Read the env variables to set the twitter api login info
 consumer_key = os.getenv("CONSUMER_KEY")
@@ -28,6 +27,7 @@ try:
     logging.info("Authenticated to twitter API successfully")
 except:
     logging.error("Failed to authenticate to twitter API")
+    exit()
 
 #Sets wormed.txt raw url from github and tries to download it
 try:
@@ -57,8 +57,7 @@ os.remove("wormed.txt")
 #For random generation, sets max index
 i = len(worm_facts) - 1
 #Defines times the bot should tweet
-#If you want to change the times remember that for minutes below 10 the 0 is not included so 19:05 is actually 19:5
-tweet_times = ["8:0","9:0","10:0","11:0","12:0","13:0","14:0","15:0","16:0","17:0","18:0","19:0","20:0","21:0","22:0","23:0","0:0"]
+tweet_times = ["8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00","0:00"]
 #For endless loop
 stop = False
 
@@ -79,13 +78,11 @@ def on_press(key):
             urllib.request.urlretrieve(url,"wormed.txt")
             logging.info("Pulled wormed file from github")
         except:
-            logging.error("Failed to request wormed file from github")
-            exit()
+            logging.error("Failed to request wormed file from github, using stored facts")
         try:
             worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
         except FileNotFoundError:
             logging.error("Failed opening wormed file from disk")
-            exit()
         worm_facts.clear()
         for worm_fact in worm_facts_file.readlines():
             worm_facts.append(worm_fact)
@@ -103,8 +100,12 @@ with keyboard.Listener(on_press=on_press) as listener:
         #Gets current time
         seconds = time.time()
         time_secs = time.localtime(seconds)
-        #Copies time to a string value with the format hh:m/hh:mm
-        curr_time = str(time_secs.tm_hour) + ":" + str(time_secs.tm_min)
+        #Copies time to a string value with the format hh:mm
+        #The if is needed because 10:09 is copied as 10:9 so if minutes are smaller than 10 i add a 0 to the string for clarity
+        if time_secs.tm_min < 10:
+            curr_time = str(time_secs.tm_hour) + ":0" + str(time_secs.tm_min)
+        else:
+            curr_time = str(time_secs.tm_hour) + ":" + str(time_secs.tm_min)
         print("Controls:\nEnd Quit bot\nIns reload worm facts and print\n")
         print(curr_time + "\n")
         #If time is equal to tweet time it tweets
@@ -123,7 +124,7 @@ with keyboard.Listener(on_press=on_press) as listener:
             print("Time is not correct, didn't tweet")
             time.sleep(60)
             print("\n")
-        #Clears screen for clarity's sake, should also work on non-windows machines
+        #Clears screen for clarity, should also work on non-windows machines
         if os.name == 'nt':
             os.system('cls')
         else:
