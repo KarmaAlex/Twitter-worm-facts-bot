@@ -3,8 +3,10 @@ import random
 import time
 import os
 import urllib.request
+from urllib.parse import urlparse
 import logging
 import json
+import requests
 
 #THIS BOT NOW RUNS ON A HEROKU SCHEDULER, THE TIMES OF THE TWEETS ARE DIFFERENT
 
@@ -67,11 +69,21 @@ def txt_tweet(text):
     logging.info("Tweeted")
 
 #Function for tweets that include media
-def media_tweet(file, text):
+def media_tweet(url, text):
+    filename = os.path.basename(urlparse(url).path)
+    with os.open("media/"+filename,"wb") as file:
+        response = requests.get(url, stream=True)
+        if not response.ok:
+            print (response)
+        for block in response.iter_content(1024):
+            if not block:
+                break
+        file.write(block)
     if text != None:
         api.update_with_media(file,status=text)
     else:
         api.update_with_media(file)
+    os.remove(file)
 
 while stop == False:
     #Gets current time
