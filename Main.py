@@ -1,10 +1,12 @@
 import tweepy
 import random
 import time
-from pynput import keyboard
 import os
 import urllib.request
 import logging
+import json
+
+#THIS BOT NOW RUNS ON A HEROKU SCHEDULER, THE TIMES OF THE TWEETS ARE DIFFERENT
 
 #Logging settings
 logging.basicConfig(filename='bot_log.log',filemode='a',format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
@@ -29,105 +31,77 @@ except:
     logging.error("Failed to authenticate to twitter API")
     exit()
 
+
 #Sets wormed.txt raw url from github and tries to download it
 try:
-    url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/wormed.txt'
-    urllib.request.urlretrieve(url,"wormed.txt")
+    url = 'https://raw.githubusercontent.com/KarmaAlex/Twitter-worm-facts-bot/master/worm%20facts.json'
+    urllib.request.urlretrieve(url,"worm facts.json")
     logging.info("Pulled wormed fle from github")
 except:
     logging.error("Failed to request wormed file from github")
     exit()
 
-worm_facts = []
 #Try to import the worm facts file
 try:
-    #File is opened with encoding utf-8 because that's what twitter uses
-    worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
+    #Open in utf-8 encoding so that things like emojis work
+    with open("worm facts.json", "r", encoding="utf-8") as worm_facts_file:
+        worm_facts = json.load(worm_facts_file)
 except FileNotFoundError:
     logging.error("Failed opening wormed file from disk")
     exit()
-
-#Reads all lines in the text document and copies them to empty list and closes file
-for worm_fact in worm_facts_file.readlines():
-    worm_facts.append(worm_fact)
-worm_facts_file.close()
-os.remove("wormed.txt")
+os.remove("worm facts.json")
 
 #Declaration of various variables that are needed later
 #For random generation, sets max index
 i = len(worm_facts) - 1
-#Defines times the bot should tweet
-tweet_times = ["8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00","0:00"]
 #For endless loop
 stop = False
+#Empty list for last 20 tweets
+last_tweets = []
+#Number of hours it should wait until tweeting again
+tweet_delay = 6
 
-#Function that is used in the keyboard listener to interrupt execution and reload worm facts
-def on_press(key):
-    global stop
-    global i
-    #Quits program when pressing the End key
-    if key == keyboard.Key.end:
-        print("Quitting...")
+#Function for text only tweets
+def txt_tweet(text):
+    api.update_status(text)
+    logging.info("Tweeted")
+
+#Function for tweets that include media
+def media_tweet(file, text):
+    if text != None:
+        api.update_with_media(file,status=text)
+    else:
+        api.update_with_media(file)
+
+while stop == False:
+    #Gets current time
+    seconds = time.time()
+    time_secs = time.localtime(seconds)
+    #Gets last tweets by authenticated user
+    last_tweets = api.user_timeline()
+    tweet = last_tweets[0]
+    #print("Controls:\nEnd Quit bot\nIns reload worm facts and print\n")
+    #print(curr_time + "\n")
+    #If time since last tweet is 6 hours or longer it tries to tweet
+    print(time_secs.tm_hour)
+    print(tweet.created_at.hour)
+    if ((time_secs.tm_hour - tweet.created_at.hour) >= tweet_delay) or ((time_secs.tm_hour - tweet.created_at.hour) <= -tweet_delay):
+        #Keeps trying to tweet until it doesn't encounter the duplicate status error
+        #This might cause the bot to exceed the max amounts of calls to the api, however this is unlikely
+        try:
+            #Generate random tweet
+            fact = worm_facts[random.randint(0,len(worm_facts)-1)]
+            #Calls the appropriate function based on wether the tweet contains media or not
+            if fact["type"] == "text":
+                txt_tweet(fact["text"])
+            else:
+                media_tweet(fact["file"],fact["text"])
+            logging.info("Tweeted")
+            print("Tweeted")
+            stop = True
+        except tweepy.TweepError:
+            logging.error("Status duplicate, trying different tweet")
+    else:
+        print("It has not been "+ str(tweet_delay) + " or more hours since last tweet")
         stop = True
-        #Stops listener
-        return False
-    #Reloads worm facts from file when pressing the Ins key
-    elif key == keyboard.Key.insert:
-        print("Reloading worm facts...")
-        try:
-            urllib.request.urlretrieve(url,"wormed.txt")
-            logging.info("Pulled wormed file from github")
-        except:
-            logging.error("Failed to request wormed file from github, using stored facts")
-        try:
-            worm_facts_file = open("wormed.txt","r",encoding=('utf-8'))
-        except FileNotFoundError:
-            logging.error("Failed opening wormed file from disk")
-        worm_facts.clear()
-        for worm_fact in worm_facts_file.readlines():
-            worm_facts.append(worm_fact)
-        i = len(worm_facts) - 1
-        worm_facts_file.close()
-        os.remove("wormed.txt")
-        print("Printing worm facts:")
-        for worm_fact in worm_facts:
-            print(worm_fact)
-
-#Initiates keyboard listener
-with keyboard.Listener(on_press=on_press) as listener:
-    #Starts infinite loop that ends on key press
-    while stop == False:
-        #Gets current time
-        seconds = time.time()
-        time_secs = time.localtime(seconds)
-        #Copies time to a string value with the format hh:mm
-        #The if is needed because 10:09 is copied as 10:9 so if minutes are smaller than 10 i add a 0 to the string for clarity
-        if time_secs.tm_min < 10:
-            curr_time = str(time_secs.tm_hour) + ":0" + str(time_secs.tm_min)
-        else:
-            curr_time = str(time_secs.tm_hour) + ":" + str(time_secs.tm_min)
-        print("Controls:\nEnd Quit bot\nIns reload worm facts and print\n")
-        print(curr_time + "\n")
-        #If time is equal to tweet time it tweets
-        if curr_time in tweet_times:
-            #Keeps trying to tweet until it doesn't encounter the duplicate status error
-            #This might cause the bot to exceed the max amounts of calls to the api, however this is unlikely
-            try:
-                #Generate random tweet
-                api.update_status(worm_facts[random.randint(0,i)])
-                logging.info("Tweeted")
-                print("Tweeted")
-                time.sleep(60)
-            except tweepy.TweepError:
-                logging.error("Status duplicate, trying different tweet")
-        else:
-            print("Time is not correct, didn't tweet")
-            time.sleep(60)
-            print("\n")
-        #Clears screen for clarity, should also work on non-windows machines
-        if os.name == 'nt':
-            os.system('cls')
-        else:
-            os.system('clear')
-    #Continues listening
-    listener.join()
+print("Quitting...")
