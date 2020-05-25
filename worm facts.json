@@ -1,8 +1,4 @@
 [
-    {
-        "type": "Media",
-        "File": "./wathever.gif"
-    },
 	{
 		"type": "text",
 		"text": "worm fact! worms arent real, you have never seen a worm, worms arent real, you have never seen a worm, worms arent real, you have never seen a worm, worms arent real, you have never seen a worm, worms arent real, you have never seen a worm, worms arent real, you have never seen a"
@@ -248,11 +244,6 @@
 		"text": "worn fact! worms don't know how to spell"
 	},
 	{
-		"type": "media",
-		"file": "media/test.png",
-		"text": "poggers"
-	},
-	{
 		"type": "text",
 		"text": "worm fact! !add 5"
 	},
@@ -270,13 +261,13 @@
 		"type": "media",
 		"file": "media/vin.gif",
 		"text": "worm!"
-    },
-    {
+    	},
+    	{
 		"type": "text",
 		"text": "worm fact! @duck wanna mge?"
-    },
-    {
+    	},
+    	{
 		"type": "text",
 		"text": "worm fact! i got reese's puffs in my bones (wah)"
-	}
+    	}
 ]
