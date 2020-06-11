@@ -269,5 +269,18 @@
     	{
 		"type": "text",
 		"text": "worm fact! i got reese's puffs in my bones (wah)"
-    	}
+    	},
+	{
+		"type": "text",
+		"text": "worm fact! shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop shlop"
+	},
+	{
+		"type": "text",
+		"text": "eorm fact! hiii :)"
+	},
+	{
+		"type": "media",
+		"file": "https://cdn.discordapp.com/attachments/668078949993152523/720393947469316116/cooltext-357156175157105.gif",
+		"text": "worm fact!"
+	}
 ]
